@@ -25,7 +25,7 @@ RTL_SDR=(/usr/bin/rtl_sdr -f 868000000 -s 1024000 -g 40 -)
 #RTL_SDR=(cat /sparsnas.raw)
 SPARSNAS_DECODE="/usr/bin/sparsnas_decode"
 
-FIND_FREQ="SPARSNAS_SENSOR_ID=_SENSE_ $SPARSNAS_DECODE /tmp/sparsnas.raw --find-frequencies > /tmp/_SENSE_.freq"
+FIND_FREQ="SPARSNAS_SENSOR_ID=_SENSE_ $SPARSNAS_DECODE /tmp/sparsnas.raw --find-frequencies > /data/_SENSE_.freq"
 DECODE="> >(SPARSNAS_SENSOR_ID=_SENSE_ SPARSNAS_PULSES_PER_KWH=_pulse_ SPARSNAS_FREQ_MIN=_min_ SPARSNAS_FREQ_MAX=_max_ /usr/bin/sparsnas_decode)"
 
 [ "${(k)SENSORS}" ] || exit 0
@@ -46,8 +46,8 @@ function decode () {
   for i in ${(k)SENSORS}; do
     _c=$(echo $DECODE | \
       sed -e "s/_SENSE_/$i/g" -e "s/_pulse_/$SENSORS[$i]/" \
-      -e "s/_min_/$(awk -F= '/MIN/ {print $2}' < /tmp/$i.freq)/" \
-      -e "s/_max_/$(awk -F= '/MAX/ {print $2}' < /tmp/$i.freq)/")
+      -e "s/_min_/$(awk -F= '/MIN/ {print $2}' < /data/$i.freq)/" \
+      -e "s/_max_/$(awk -F= '/MAX/ {print $2}' < /data/$i.freq)/")
     CMD="$CMD $_c"
   done
 
@@ -57,7 +57,7 @@ function decode () {
 
 function frequencies () {
   for sensor in ${(k)SENSORS}; do
-     grep -e SPARSNAS_FREQ_MAX -e SPARSNAS_FREQ_MIN /tmp/${sensor}.freq -q || return 1
+     grep -e SPARSNAS_FREQ_MAX -e SPARSNAS_FREQ_MIN /data/${sensor}.freq -q || return 1
   done
   return 0
 }
